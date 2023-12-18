@@ -3,6 +3,7 @@ import requests as pyrequests
 from http.cookies import SimpleCookie
 import bencodepy
 import argparse
+import glob
 
 
 ARGS = None
@@ -28,7 +29,8 @@ def downloadTorrentData(downloadLink, sitecookie=None):
     return response.content
 
 def getFileWithPattern(dirpath, pattern):
-    for filename in os.listdir(dirpath):
+    results += [x for x in os.listdir(dirpath) if x.endswith('.mkv') or x.endswith('.mp4')]
+    for filename in results:
         m = re.search(pattern,  filename, re.I)
         if m:
             return os.path.join(dirpath, filename)
@@ -62,7 +64,7 @@ def torrentReseed(torrent_data):
                     if ARGS.srcpath:
                         m = re.search(r'(S\d+E\d+)', file_path, re.I)
                         if m:
-                            pattern = m.groups(1)
+                            pattern = m.group(1)
                             srcfile = getFileWithPattern(ARGS.srcpath, pattern)
                             if srcfile:
                                 renpath = os.path.join(destFolder, file_path)
