@@ -49,7 +49,7 @@ def torrentReseed(torrent_data):
             basedir = info[b'name'].decode('utf-8')
             print(f"文件夹名: {basedir}")
         if ARGS.srcpath:
-            renpath = os.path.join(os.path.dirname(ARGS.destpath), basedir)
+            renpath = os.path.join(ARGS.destpath, basedir)
             print(f"symlink: {ARGS.srcpath} -> {renpath}")
             os.symlink(ARGS.srcpath, renpath)
 
@@ -65,7 +65,7 @@ def torrentReseed(torrent_data):
                             pattern = m.groups(1)
                             srcfile = getFileWithPattern(ARGS.srcpath, pattern)
                             if srcfile:
-                                renpath = os.path.join(os.path.dirname(ARGS.destpath), file_path)
+                                renpath = os.path.join(ARGS.destpath, file_path)
                                 print(f"symlink: {srcfile} -> {renpath}")
                                 os.symlink(srcfile, renpath)
                             else:
