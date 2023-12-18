@@ -29,7 +29,7 @@ def downloadTorrentData(downloadLink, sitecookie=None):
 
 def getFileWithPattern(dirpath, pattern):
     for filename in os.listdir(dirpath):
-        m = re.match(pattern,  filename, re.I)
+        m = re.search(pattern,  filename, re.I)
         if m:
             return os.path.join(dirpath, filename)
     return ''
@@ -49,9 +49,9 @@ def torrentReseed(torrent_data):
             basedir = info[b'name'].decode('utf-8')
             print(f"文件夹名: {basedir}")
         if ARGS.srcpath:
-            renpath = os.path.join(ARGS.destpath, basedir)
-            print(f"symlink: {ARGS.srcpath} -> {renpath}")
-            os.symlink(ARGS.srcpath, renpath)
+            destFolder = os.path.join(ARGS.destpath, basedir)
+            print(f"mkdir: {destFolder}")
+            ensureDir(destFolder)
 
         if b'files' in info:
             print("文件列表:")
@@ -60,16 +60,18 @@ def torrentReseed(torrent_data):
                     file_path = '/'.join([x.decode('utf-8') for x in file_info[b'path']])
                     print(file_path)
                     if ARGS.srcpath:
-                        m = re.match(r'S\d+E\d+', file_path, re.I)
+                        m = re.search(r'(S\d+E\d+)', file_path, re.I)
                         if m:
                             pattern = m.groups(1)
                             srcfile = getFileWithPattern(ARGS.srcpath, pattern)
                             if srcfile:
-                                renpath = os.path.join(ARGS.destpath, file_path)
+                                renpath = os.path.join(destFolder, file_path)
                                 print(f"symlink: {srcfile} -> {renpath}")
                                 os.symlink(srcfile, renpath)
                             else:
                                 print(f"pattern {pattern} not found in {ARGS.srcpath}")
+                        else:
+                            print(f"no (S\d+E\d+), skip {file_path}")
 
     else:
         print("无法解析.torrent文件")
