@@ -27,6 +27,12 @@ def downloadTorrentData(downloadLink, sitecookie=None):
 
     return response.content
 
+def getFileWithPattern(dirpath, pattern):
+    for filename in os.listdir(dirpath):
+        m = re.match(pattern,  filename, re.I)
+        if m:
+            return os.path.join(dirpath, filename)
+    return ''
 
 def torrentReseed(torrent_data):
     decoded_torrent = bencodepy.decode(torrent_data)
@@ -44,6 +50,7 @@ def torrentReseed(torrent_data):
             print(f"文件夹名: {basedir}")
         if ARGS.srcpath:
             renpath = os.path.join(os.path.dirname(ARGS.destpath), basedir)
+            print(f"symlink: {ARGS.srcpath} -> {renpath}")
             os.symlink(ARGS.srcpath, renpath)
 
         if b'files' in info:
@@ -53,8 +60,16 @@ def torrentReseed(torrent_data):
                     file_path = '/'.join([x.decode('utf-8') for x in file_info[b'path']])
                     print(file_path)
                     if ARGS.srcpath:
-                        renpath = os.path.join(os.path.dirname(ARGS.destpath), file_path)
-                        os.symlink(os.path.join(os.path.dirname(ARGS.srcpath), renpath))
+                        m = re.match(r'S\d+E\d+', file_path, re.I)
+                        if m:
+                            pattern = m.groups(1)
+                            srcfile = getFileWithPattern(ARGS.srcpath, pattern)
+                            if srcfile:
+                                renpath = os.path.join(os.path.dirname(ARGS.destpath), file_path)
+                                print(f"symlink: {srcfile} -> {renpath}")
+                                os.symlink(srcfile, renpath)
+                            else:
+                                print(f"pattern {pattern} not found in {ARGS.srcpath}")
 
     else:
         print("无法解析.torrent文件")
@@ -81,7 +96,8 @@ def loadArgs():
             print(f"Local file not exists: {ARGS.srcpath}")
             exit(1)
         if not ARGS.destpath:
-            ARGS.destpath = os.path.join(os.path.basename(ARGS.srcpath), 'reseedlink')
+            ARGS.destpath = os.path.join(os.path.dirname(ARGS.srcpath), 'reseedlink')
+            print("dest path = " + ARGS.destpath)
             ensureDir(ARGS.destpath)
 
 
