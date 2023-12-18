@@ -29,6 +29,7 @@ def downloadTorrentData(downloadLink, sitecookie=None):
     return response.content
 
 def getFileWithPattern(dirpath, pattern):
+    results = []
     results += [x for x in os.listdir(dirpath) if x.endswith('.mkv') or x.endswith('.mp4')]
     for filename in results:
         m = re.search(pattern,  filename, re.I)
